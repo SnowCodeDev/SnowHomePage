@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(45deg, #3e4e5e, #1e2b38);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .calculator {
+            width: 360px;
+            background: #b6c3d4;
+            background: linear-gradient(145deg, #ccd7e8, #aebacf);
+            border-radius: 35px;
+            padding: 25px 20px 30px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.5), 
+                        0 0 0 2px #edf2fa inset,
+                        0 -8px 0 #8a99b0 inset;
+            border: 1px solid #7c8ba3;
+        }
+        .display {
+            background: #dbe4f0;
+            background: linear-gradient(165deg, #e6eefa, #ccd8ea);
+            border: 3px solid #5f708b;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 0 2px #f6fbff, inset 0 0 0 2px #9babc5;
+            text-align: right;
+            font-family: 'Courier New', 'JetBrains Mono', monospace;
+            min-height: 95px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .screen-input {
+            font-size: 2.5rem;
+            color: #102433;
+            font-weight: 700;
+            letter-spacing: 1px;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px #9dafcf;
+            word-wrap: break-word;
+            word-break: break-all;
+            min-height: 3.5rem;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 10px;
+        }
+        button {
+            background: #ecf3fe;
+            background: linear-gradient(145deg, #f5fcff, #dde6f5);
+            border: none;
+            border-radius: 60px;
+            padding: 18px 0;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1a2e49;
+            box-shadow: 0 7px 0 #7f90ac, 0 2px 0 #ffffff inset, 0 -2px 0 #a8b7d0 inset;
+            cursor: pointer;
+            transition: all 0.08s ease;
+            border: 1px solid #b1c2dd;
+            font-family: 'Segoe UI', system-ui;
+            line-height: 1;
+        }
+        button:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #6c7d9c, 0 2px 0 #ffffff inset;
+        }
+        .ac-btn {
+            background: #fad4b8;
+            background: linear-gradient(145deg, #ffdfc5, #ecbf9a);
+            color: #4f3016;
+            box-shadow: 0 7px 0 #9c7a58, 0 2px 0 #fff1e0 inset;
+            font-size: 1.8rem;
+        }
+        .op-btn {
+            background: #d2dff5;
+            background: linear-gradient(145deg, #deeafd, #c0cee9);
+            color: #113359;
+            font-size: 2rem;
+        }
+        .eq-btn {
+            background: #5883c0;
+            background: linear-gradient(145deg, #6c9ee6, #3e62a0);
+            color: white;
+            font-size: 2.2rem;
+            box-shadow: 0 7px 0 #253d6b, 0 2px 0 #aac2ff inset;
+            grid-column: span 2;
+        }
+        #btn0 {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="screen-input" id="calcScreen">0</div>
+        </div>
+
+        <div class="buttons">
+            <button class="ac-btn" id="acBtn">AC</button>
+            <button class="op-btn" id="signBtn">±</button>
+            <button class="op-btn" id="percentBtn">%</button>
+            <button class="op-btn" id="divideBtn">÷</button>
+
+            <button id="btn7">7</button>
+            <button id="btn8">8</button>
+            <button id="btn9">9</button>
+            <button class="op-btn" id="multiplyBtn">×</button>
+
+            <button id="btn4">4</button>
+            <button id="btn5">5</button>
+            <button id="btn6">6</button>
+            <button class="op-btn" id="minusBtn">−</button>
+
+            <button id="btn1">1</button>
+            <button id="btn2">2</button>
+            <button id="btn3">3</button>
+            <button class="op-btn" id="plusBtn">+</button>
+
+            <button id="btn0">0</button>
+            <button id="dotBtn">.</button>
+            <button class="eq-btn" id="equalBtn">=</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const screen = document.getElementById('calcScreen');
+
+            // 核心：返回无前导零的时间数字 (例如 2152258，而不是 02152258)
+            function getCurrentTimeCompact() {
+                const now = new Date();
+                // 月份、日期、小时、分钟，分别转成数字去掉前导零，再拼接
+                const month = now.getMonth() + 1;        // 1-12，无前导零
+                const day = now.getDate();                // 1-31
+                const hours = now.getHours();              // 0-23
+                const minutes = now.getMinutes();          // 0-59
+
+                // 直接拼接：月 + 日 + 时 + 分，均为整数，不会有前导零
+                // 例如 2月15日22点45分 -> 2152245
+                return '' + month + day + hours + minutes;
+            }
+
+            let currentInput = '0';
+            let resetOnNextDigit = false;
+            let pendingOperator = null;
+
+            function updateScreen(value) {
+                screen.textContent = value.length > 14 ? value.slice(0, 14) : value;
+            }
+
+            function handleDigit(digit) {
+                if (currentInput === '0' || resetOnNextDigit) {
+                    currentInput = digit;
+                    resetOnNextDigit = false;
+                } else {
+                    currentInput += digit;
+                }
+                updateScreen(currentInput);
+            }
+
+            function handleClear() {
+                currentInput = '0';
+                pendingOperator = null;
+                resetOnNextDigit = false;
+                updateScreen(currentInput);
+            }
+
+            function handleOperator(op) {
+                pendingOperator = op;
+                resetOnNextDigit = true;
+            }
+
+            function handleEqual() {
+                const timeStr = getCurrentTimeCompact();   // 例: 2152245 (没有前导零)
+                currentInput = timeStr;
+                resetOnNextDigit = true;
+                pendingOperator = null;
+                updateScreen(currentInput);
+            }
+
+            function handleDot() {
+                if (resetOnNextDigit) {
+                    currentInput = '0.';
+                    resetOnNextDigit = false;
+                } else if (!currentInput.includes('.')) {
+                    currentInput += '.';
+                }
+                updateScreen(currentInput);
+            }
+
+            function handleSign() {
+                if (currentInput !== '0' && currentInput !== '') {
+                    if (currentInput.startsWith('-')) {
+                        currentInput = currentInput.substring(1);
+                    } else {
+                        currentInput = '-' + currentInput;
+                    }
+                    updateScreen(currentInput);
+                }
+            }
+
+            function handlePercent() {
+                if (currentInput && !isNaN(parseFloat(currentInput))) {
+                    const num = parseFloat(currentInput) / 100;
+                    currentInput = String(num);
+                    updateScreen(currentInput);
+                }
+            }
+
+            // 绑定按钮
+            document.getElementById('btn0').addEventListener('click', () => handleDigit('0'));
+            document.getElementById('btn1').addEventListener('click', () => handleDigit('1'));
+            document.getElementById('btn2').addEventListener('click', () => handleDigit('2'));
+            document.getElementById('btn3').addEventListener('click', () => handleDigit('3'));
+            document.getElementById('btn4').addEventListener('click', () => handleDigit('4'));
+            document.getElementById('btn5').addEventListener('click', () => handleDigit('5'));
+            document.getElementById('btn6').addEventListener('click', () => handleDigit('6'));
+            document.getElementById('btn7').addEventListener('click', () => handleDigit('7'));
+            document.getElementById('btn8').addEventListener('click', () => handleDigit('8'));
+            document.getElementById('btn9').addEventListener('click', () => handleDigit('9'));
+
+            document.getElementById('plusBtn').addEventListener('click', () => handleOperator('+'));
+            document.getElementById('minusBtn').addEventListener('click', () => handleOperator('-'));
+            document.getElementById('multiplyBtn').addEventListener('click', () => handleOperator('×'));
+            document.getElementById('divideBtn').addEventListener('click', () => handleOperator('÷'));
+
+            document.getElementById('acBtn').addEventListener('click', handleClear);
+            document.getElementById('equalBtn').addEventListener('click', handleEqual);
+            document.getElementById('dotBtn').addEventListener('click', handleDot);
+            document.getElementById('signBtn').addEventListener('click', handleSign);
+            document.getElementById('percentBtn').addEventListener('click', handlePercent);
+
+            // 键盘支持
+            document.addEventListener('keydown', (e) => {
+                const key = e.key;
+                if (key >= '0' && key <= '9') handleDigit(key);
+                else if (key === '.') handleDot();
+                else if (key === 'Enter' || key === '=') {
+                    e.preventDefault();
+                    handleEqual();
+                }
+                else if (key === 'Escape' || key === 'c' || key === 'C') handleClear();
+                else if (key === '+') handleOperator('+');
+                else if (key === '-') handleOperator('-');
+                else if (key === '*') handleOperator('×');
+                else if (key === '/') handleOperator('÷');
+                else if (key === '%') handlePercent();
+            });
+
+            updateScreen(currentInput);
+        })();
+    </script>
+</body>
+</html>
